@@ -42,5 +42,23 @@ require("plugins.lspconfig")
 require("plugins.treesitter")
 require("mason").setup()
 
+-- Map <C-b> to trigger omni-completion
+vim.keymap.set('i', '<C-a>', '<C-x><C-o>', { noremap = true, silent = true })
+
+-- Tab to navigate completion menu
+vim.keymap.set('i', '<Tab>', function()
+	return vim.fn.pumvisible() == 1 and '<C-n>' or '<Tab>'
+end, { expr = true, noremap = true })
+
+-- Shift-Tab to navigate backwards in the completion menu
+vim.keymap.set('i', '<S-Tab>', function()
+	return vim.fn.pumvisible() == 1 and '<C-p>' or '<S-Tab>'
+end, { expr = true, noremap = true })
+
+-- Press Enter to confirm selection if completion menu is visible
+vim.keymap.set('i', '<CR>', function()
+	return vim.fn.pumvisible() == 1 and '<C-y>' or '<CR>'
+end, { expr = true, noremap = true })
+
 vim.opt.completeopt = { "menuone", "noselect", "noinsert" }
 vim.opt.shortmess = vim.opt.shortmess + { c = true }
