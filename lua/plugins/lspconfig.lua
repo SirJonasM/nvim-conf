@@ -40,7 +40,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 	end,
 })
 
-vim.lsp.enable({ "lua_ls", "tinymist", "rust_analyzer" })
+vim.lsp.enable({ "lua_ls", "tinymist", "rust_analyzer", "pyright" })
 
 -- Mappings
 local map = vim.keymap.set
