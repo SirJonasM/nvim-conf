@@ -1,4 +1,5 @@
-require("lspconfig")["tinymist"].setup({
+local lspconfig = require('lspconfig')
+lspconfig["tinymist"].setup({
 	settings = {
 		formatterMode = "typstyle",
 		exportPdf = "onType",
@@ -23,6 +24,53 @@ require("lspconfig")["tinymist"].setup({
 })
 
 
+-- function to detect Python dynamically
+local function get_python_path()
+	-- first, check CONDA_PREFIX environment variable (active conda env)
+	local conda_env = os.getenv("CONDA_PREFIX")
+	if conda_env then
+		return conda_env .. "/bin/python"
+	end
+
+	-- fallback to system python3
+	local handle = io.popen("which python3")
+	local result = handle:read("*a")
+	handle:close()
+	result = result:gsub("\n", "") -- remove trailing newline
+	return result
+end
+
+lspconfig.pyright.setup({
+	settings = {
+		python = {
+			pythonPath = get_python_path(),
+		}
+	}
+})
+
+require 'lspconfig'.efm.setup {
+	on_attach = on_attach,
+	flags = {
+		debounce_text_changes = 150,
+	},
+	init_options = { documentFormatting = true },
+	filetypes = { "python" },
+	settings = {
+		rootMarkers = { ".git/" },
+		languages = {
+			python = {
+				{ formatCommand = "black --quiet --line-lengt 230 -", formatStdin = true }
+			}
+		}
+	}
+}
+
+lspconfig.clangd.setup {
+	cmd = { "clangd" },
+	filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
+	root_dir = lspconfig.util.root_pattern("compile_commands.json", ".git"),
+}
+
 vim.api.nvim_create_autocmd('LspAttach', {
 	callback = function(args)
 		local c = vim.lsp.get_client_by_id(args.data.client_id)
@@ -40,7 +88,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
 	end,
 })
 
-vim.lsp.enable({ "lua_ls", "tinymist", "rust_analyzer", "pyright" })
+vim.lsp.enable({ "lua_ls", "tinymist", "pyright" })
+
 
 -- Mappings
 local map = vim.keymap.set
@@ -52,13 +101,14 @@ del("n", "grt")
 del("n", "gO")
 del("n", "<C-w>d")
 
-map('n', '<leader>lf', vim.lsp.buf.format, { desc = "Format current Buffer" })
 map('n', "gd", vim.lsp.buf.definition, { desc = "Goto Definition" })
 map('n', "gD", vim.lsp.buf.type_definition, { desc = "Goto Type Definition" })
 map('n', "gI", vim.lsp.buf.implementation, { desc = "Goto Implementation" })
+map('n', '<leader>cf', vim.lsp.buf.format, { desc = "Format current Buffer" })
 map('n', "<leader>cr", vim.lsp.buf.rename, { desc = "Rename symbol" })
 map('n', "<leader>cs", vim.lsp.buf.document_symbol, { desc = "List All Symbols in current Buffer" })
 map('n', "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
 
 map('n', "<leader>cw", vim.diagnostic.open_float, { desc = "Open floating Diagnostic window" })
+map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
