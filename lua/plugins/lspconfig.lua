@@ -2,8 +2,9 @@ local lspconfig = require('lspconfig')
 lspconfig["tinymist"].setup({
 	settings = {
 		formatterMode = "typstyle",
-		exportPdf = "onType",
+		exportPdf = "onSave",
 		semanticTokens = "disable",
+		projectResolution = "lockDatabase",
 	},
 	on_attach = function(client, bufnr)
 		vim.keymap.set("n", "<leader>tp", function()
@@ -23,6 +24,11 @@ lspconfig["tinymist"].setup({
 	end,
 })
 
+lspconfig.verible.setup({
+	cmd = { "verible-verilog-ls" },
+	filetypes = { "verilog", "systemverilog" },
+	root_dir = lspconfig.util.root_pattern(".git", "verible.filelist", "."),
+})
 
 -- function to detect Python dynamically
 local function get_python_path()
@@ -66,10 +72,17 @@ require 'lspconfig'.efm.setup {
 }
 
 lspconfig.clangd.setup {
-	cmd = { "clangd" },
+	cmd = {
+		"clangd",
+		"--background-index",
+		"--clang-tidy",
+		"--completion-style=detailed",
+		"--header-insertion=iwyu",
+	},
 	filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
 	root_dir = lspconfig.util.root_pattern("compile_commands.json", ".git"),
 }
+
 
 vim.api.nvim_create_autocmd('LspAttach', {
 	callback = function(args)
@@ -88,7 +101,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 	end,
 })
 
-vim.lsp.enable({ "lua_ls", "tinymist", "pyright" })
+vim.lsp.enable({ "lua_ls", "tinymist", "pyright", "ts_ls" })
 
 
 -- Mappings
@@ -102,12 +115,14 @@ del("n", "gO")
 del("n", "<C-w>d")
 
 map('n', "gd", vim.lsp.buf.definition, { desc = "Goto Definition" })
+map('n', "gr", vim.lsp.buf.references, { desc = "Goto Definition" })
 map('n', "gD", vim.lsp.buf.type_definition, { desc = "Goto Type Definition" })
 map('n', "gI", vim.lsp.buf.implementation, { desc = "Goto Implementation" })
 map('n', '<leader>cf', vim.lsp.buf.format, { desc = "Format current Buffer" })
 map('n', "<leader>cr", vim.lsp.buf.rename, { desc = "Rename symbol" })
 map('n', "<leader>cs", vim.lsp.buf.document_symbol, { desc = "List All Symbols in current Buffer" })
 map('n', "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
+map('n', "<leader>ch", ":ClangdSwitchSourceHeader<Enter>", { desc = "Code Action" })
 
 map('n', "<leader>cw", vim.diagnostic.open_float, { desc = "Open floating Diagnostic window" })
 map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })

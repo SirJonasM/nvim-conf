@@ -12,6 +12,8 @@ vim.o.termguicolors = true
 vim.o.undofile = true
 vim.o.signcolumn = "yes"
 vim.o.clipboard = "unnamedplus"
+vim.o.mouse = ""
+vim.o.scrolloff = 10
 
 vim.cmd(":hi statusline guibg=NONE")
 
@@ -27,32 +29,46 @@ vim.filetype.add({
 
 -- Packagers
 vim.pack.add({
-	{ src = "https://github.com/vague2k/vague.nvim" },
+	{ src = "https://github.com/metalelf0/base16-black-metal-scheme", version = "feat/standalone-themes" },
 	{ src = "https://github.com/stevearc/oil.nvim" },
-	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main", name = "nvim-treesitter" },
+	{ src = "https://github.com/nvim-treesitter/nvim-treesitter",     version = "main",                  name = "nvim-treesitter" },
 	{ src = "https://github.com/chomosuke/typst-preview.nvim" },
 	{ src = 'https://github.com/neovim/nvim-lspconfig' },
 	{ src = 'https://github.com/mrcjkb/rustaceanvim' },
-	{ src = "https://github.com/mason-org/mason.nvim" },
 	{ src = "https://github.com/nvim-lua/plenary.nvim.git" },
 	{ src = "https://github.com/nvim-telescope/telescope.nvim" },
 	{ src = "https://github.com/folke/flash.nvim.git" },
 	{ src = "https://github.com/dmtrKovalenko/fff.nvim.git" },
 	{ src = "https://github.com/akinsho/toggleterm.nvim.git" },
-	{ src = "https://github.com/jabirali/vim-tmux-yank.git" }
+	{ src = "https://github.com/ojroques/vim-oscyank.git" },
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons.git" },
 })
 
+-- Plugin configuration
+vim.g.oscyank_term = "default"
+vim.g.oscyank_max_length = 0 -- unlimited
+
+-- Copy all yanks to OSC52
+vim.api.nvim_create_autocmd("TextYankPost", {
+	pattern = "*",
+	callback = function()
+		if vim.v.event.operator == "y" and vim.v.event.regname == "" then
+			vim.cmd([[OSCYankRegister "]])
+		end
+	end,
+})
 require("plugins.telescope")
 require("plugins.flash")
 require("plugins.fff")
 require("plugins.toggleterm")
-require("plugins.vague")
 require("plugins.lspconfig")
 require("plugins.treesitter")
-require("mason").setup()
+vim.cmd("colorscheme black-metal-gorgoroth")
 
 -- Map <C-a> to trigger omni-completion
 vim.keymap.set('i', '<C-a>', '<C-x><C-o>', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-k>', ':cprev<Enter>')
+vim.keymap.set('n', '<C-j>', ':cnext<Enter>')
 
 -- Tab to navigate completion menu
 vim.keymap.set('i', '<Tab>', function()
