@@ -99,7 +99,7 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- Toggle Background Opacity
-local default_theme = "black-metal-gorgoroth"
+local default_theme = "black-metal-immortal"
 vim.cmd.colorscheme(default_theme)
 
 local transparency_on = false
