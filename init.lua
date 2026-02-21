@@ -57,13 +57,14 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 		end
 	end,
 })
+
 require("plugins.telescope")
 require("plugins.flash")
 require("plugins.fff")
 require("plugins.toggleterm")
 require("plugins.lspconfig")
 require("plugins.treesitter")
-vim.cmd("colorscheme black-metal-gorgoroth")
+
 
 -- Map <C-a> to trigger omni-completion
 vim.keymap.set('i', '<C-a>', '<C-x><C-o>', { noremap = true, silent = true })
@@ -96,3 +97,31 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.keymap.set("n", "<leader>rm", "<cmd>RustRun<CR>", { buffer = event.buf })
 	end,
 })
+
+-- Toggle Background Opacity
+local default_theme = "black-metal-gorgoroth"
+vim.cmd.colorscheme(default_theme)
+
+local transparency_on = false
+
+_G.toggle_transparency = function()
+    local groups = { "Normal", "NormalFloat", "NormalNC", "LineNr", "CursorLineNr", "SignColumn" }
+    
+    -- Capture the current active colorscheme name
+    local current_theme = vim.g.colors_name or default_theme
+
+    if not transparency_on then
+        for _, group in ipairs(groups) do
+            vim.api.nvim_set_hl(0, group, { bg = "none" })
+        end
+        transparency_on = true
+        print("Transparency: ON (" .. current_theme .. ")")
+    else
+        -- Re-apply the last known colorscheme to restore backgrounds
+        vim.cmd.colorscheme(current_theme)
+        transparency_on = false
+        print("Transparency: OFF (" .. current_theme .. ")")
+    end
+end
+
+vim.keymap.set("n", "<leader>tt", _G.toggle_transparency, { noremap = true, silent = true })

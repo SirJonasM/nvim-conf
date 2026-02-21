@@ -25,8 +25,6 @@ lspconfig["tinymist"].setup({
 })
 
 lspconfig.verible.setup({
-	cmd = { "verible-verilog-ls" },
-	filetypes = { "verilog", "systemverilog" },
 	root_dir = lspconfig.util.root_pattern(".git", "verible.filelist", "."),
 })
 
@@ -101,8 +99,19 @@ vim.api.nvim_create_autocmd('LspAttach', {
 	end,
 })
 
-vim.lsp.enable({ "lua_ls", "tinymist", "pyright", "ts_ls" })
+vim.lsp.enable({ "lua_ls", "tinymist", "pyright", "ts_ls", "verible" , "efm", "dotls"})
 
+local lspconfig = require("lspconfig")
+
+lspconfig.dotls = {
+  default_config = {
+    cmd = { "dot-language-server", "--stdio" },
+    filetypes = { "dot" },
+    root_dir = function(fname)
+      return vim.fs.dirname(vim.fs.find({".git", "*.dot"}, { upward = true })[1]) or vim.loop.cwd()
+    end,
+  },
+}
 
 -- Mappings
 local map = vim.keymap.set
