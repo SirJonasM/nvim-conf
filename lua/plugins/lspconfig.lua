@@ -1,5 +1,5 @@
-local lspconfig = require('lspconfig')
-lspconfig["tinymist"].setup({
+
+vim.lsp.config("tinymist", {
 	settings = {
 		formatterMode = "typstyle",
 		exportPdf = "onSave",
@@ -24,10 +24,6 @@ lspconfig["tinymist"].setup({
 	end,
 })
 
-lspconfig.verible.setup({
-	root_dir = lspconfig.util.root_pattern(".git", "verible.filelist", "."),
-})
-
 -- function to detect Python dynamically
 local function get_python_path()
 	-- first, check CONDA_PREFIX environment variable (active conda env)
@@ -44,7 +40,7 @@ local function get_python_path()
 	return result
 end
 
-lspconfig.pyright.setup({
+vim.lsp.config("pyright", {
 	settings = {
 		python = {
 			pythonPath = get_python_path(),
@@ -52,7 +48,7 @@ lspconfig.pyright.setup({
 	}
 })
 
-require 'lspconfig'.efm.setup {
+vim.lsp.config("efm", {
 	on_attach = on_attach,
 	flags = {
 		debounce_text_changes = 150,
@@ -68,8 +64,9 @@ require 'lspconfig'.efm.setup {
 		}
 	}
 }
+)
 
-lspconfig.clangd.setup {
+vim.lsp.config("clangd", {
 	cmd = {
 		"clangd",
 		"--background-index",
@@ -78,8 +75,7 @@ lspconfig.clangd.setup {
 		"--header-insertion=iwyu",
 	},
 	filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
-	root_dir = lspconfig.util.root_pattern("compile_commands.json", ".git"),
-}
+})
 
 
 vim.api.nvim_create_autocmd('LspAttach', {
@@ -101,17 +97,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 vim.lsp.enable({ "lua_ls", "tinymist", "pyright", "ts_ls", "verible" , "efm", "dotls"})
 
-local lspconfig = require("lspconfig")
-
-lspconfig.dotls = {
-  default_config = {
-    cmd = { "dot-language-server", "--stdio" },
-    filetypes = { "dot" },
-    root_dir = function(fname)
-      return vim.fs.dirname(vim.fs.find({".git", "*.dot"}, { upward = true })[1]) or vim.loop.cwd()
-    end,
-  },
-}
 
 -- Mappings
 local map = vim.keymap.set

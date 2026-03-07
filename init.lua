@@ -31,7 +31,8 @@ vim.filetype.add({
 vim.pack.add({
 	{ src = "https://github.com/metalelf0/base16-black-metal-scheme", version = "feat/standalone-themes" },
 	{ src = "https://github.com/stevearc/oil.nvim" },
-	{ src = "https://github.com/nvim-treesitter/nvim-treesitter",     version = "main",                  name = "nvim-treesitter" },
+	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main", name = "nvim-treesitter" },
+	{ src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects" },
 	{ src = "https://github.com/chomosuke/typst-preview.nvim" },
 	{ src = 'https://github.com/neovim/nvim-lspconfig' },
 	{ src = 'https://github.com/mrcjkb/rustaceanvim' },
