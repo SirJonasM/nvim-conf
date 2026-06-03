@@ -65,6 +65,7 @@ require("plugins.fff")
 require("plugins.toggleterm")
 require("plugins.lspconfig")
 require("plugins.treesitter")
+require("plugins.oil")
 
 
 -- Map <C-a> to trigger omni-completion
@@ -126,3 +127,73 @@ _G.toggle_transparency = function()
 end
 
 vim.keymap.set("n", "<leader>tt", _G.toggle_transparency, { noremap = true, silent = true })
+
+local function jump_to_parent_mod()
+  local current_file = vim.api.nvim_buf_get_name(0)
+  if current_file == "" then return end
+
+  local current_dir = vim.fs.dirname(current_file)
+  local file_name = vim.fs.basename(current_file)
+  
+  local targets = {}
+
+  -- Check if we are in a standard entry point (mod.rs, lib.rs, main.rs)
+  local is_entry_point = (file_name == "mod.rs" or file_name == "lib.rs" or file_name == "main.rs")
+
+  -- Check if we are in a modern module file (e.g., src/core.rs while src/core/ exists)
+  -- We verify this by checking if a directory with the same base name exists next to it
+  local stem = file_name:gsub("%.rs$", "")
+  local sibling_dir = current_dir .. "/" .. stem
+  local is_modern_mod_file = vim.fn.isdirectory(sibling_dir) == 1
+
+  if is_entry_point or is_modern_mod_file then
+    -- ==========================================
+    -- LAYER 2: We are ALREADY in a mod file, bubble UP
+    -- ==========================================
+    local parent_dir = vim.fs.dirname(current_dir)
+    local current_dir_name = vim.fs.basename(current_dir)
+    
+    if is_modern_mod_file then
+      -- If we are in src/core.rs, the "parent" layer is inside src/
+      table.insert(targets, parent_dir .. "/mod.rs")
+      table.insert(targets, parent_dir .. "/lib.rs")
+      table.insert(targets, parent_dir .. "/main.rs")
+      local parent_dir_name = vim.fs.basename(parent_dir)
+      local grand_parent_dir = vim.fs.dirname(parent_dir)
+      table.insert(targets, grand_parent_dir .. "/" .. parent_dir_name .. ".rs")
+    else
+      -- If we are in src/core/mod.rs, look in src/
+      table.insert(targets, parent_dir .. "/mod.rs")
+      table.insert(targets, parent_dir .. "/lib.rs")
+      table.insert(targets, parent_dir .. "/main.rs")
+      table.insert(targets, parent_dir .. ".rs") -- checks for src/core.rs
+    end
+  else
+    -- ==========================================
+    -- LAYER 1: We are in a normal file (spatial_grid.rs), find its immediate mod
+    -- ==========================================
+    local parent_dir = vim.fs.dirname(current_dir)
+    local current_dir_name = vim.fs.basename(current_dir)
+
+    table.insert(targets, current_dir .. "/mod.rs")
+    table.insert(targets, current_dir .. "/lib.rs")
+    table.insert(targets, current_dir .. "/main.rs")
+    table.insert(targets, parent_dir .. "/" .. current_dir_name .. ".rs") -- checks for src/core.rs
+  end
+
+  -- Iterates through targets and open the first one that exists
+  for _, target in ipairs(targets) do
+    -- Normalize path trailing slashes/redundancies just in case
+    local clean_target = vim.fs.normalize(target)
+    if vim.fn.filereadable(clean_target) == 1 then
+      vim.cmd("edit " .. vim.fn.fnameescape(clean_target))
+      return
+    end
+  end
+
+  print("No parent module file found.")
+end
+
+
+-- Map it to a key combination (e.g., <leader>up)
+vim.keymap.set("n", "<leader>kk", jump_to_parent_mod, { desc = "Jump to parent Rust module" })
